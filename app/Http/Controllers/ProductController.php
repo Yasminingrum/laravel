@@ -11,7 +11,6 @@ class ProductController extends Controller
      */
     public function index()
     {
-        // Data dummy untuk 20 produk
         $products = [];
         for ($i = 1; $i <= 20; $i++) {
             $products[] = [
@@ -38,8 +37,6 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        // Logika untuk menyimpan produk
-        // Untuk sementara redirect ke index
         return redirect()->route('products')->with('success', 'Product created successfully!');
     }
 
@@ -48,7 +45,6 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        // Data dummy untuk produk spesifik
         $product = [
             'id' => $id,
             'name' => 'Product ' . $id,
@@ -64,7 +60,6 @@ class ProductController extends Controller
      */
     public function edit(string $id)
     {
-        // Data dummy untuk produk yang akan diedit
         $product = [
             'id' => $id,
             'name' => 'Product ' . $id,
@@ -80,8 +75,6 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Logika untuk update produk
-        // Untuk sementara redirect ke index
         return redirect()->route('products')->with('success', 'Product updated successfully!');
     }
 }
