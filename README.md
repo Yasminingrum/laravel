@@ -133,7 +133,7 @@ Aplikasi web CRUD (Create, Read, Update, Delete) untuk mengelola data produk dan
 
 1. **Clone atau download project**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Yasminingrum/laravel 
    cd laravel-product-management
    ```
 
