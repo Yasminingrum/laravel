@@ -110,14 +110,23 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified product from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
+        try {
+            $product = Product::findOrFail($id);
+            $productName = $product->name;
 
-        return redirect()->route('products')->with('success', 'Product deleted successfully!');
+            $product->delete();
+
+            return redirect()->route('products')->with('success', "Product '{$productName}' has been deleted successfully!");
+
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('products')->with('error', 'Product not found!');
+        } catch (Exception $e) {
+            return redirect()->route('products')->with('error', 'Failed to delete product. Please try again.');
+        }
     }
 
     /**

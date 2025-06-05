@@ -3,9 +3,9 @@
     <div class="bg-primary text-white py-5 mb-5 rounded">
         <div class="container text-center">
             <h1 class="display-4 fw-bold mb-4">
-                <i class="bi bi-shop me-3"></i>Product Manager
+                <i class="bi bi-shop me-3"></i>TOKO SAYA
             </h1>
-            <p class="lead mb-4">Manage your products with ease and efficiency</p>
+            <p class="lead mb-4">Manage products with ease and efficiency</p>
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <form action="{{ route('products') }}" method="GET" class="d-flex gap-2">

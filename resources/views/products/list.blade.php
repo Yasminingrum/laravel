@@ -101,13 +101,17 @@
                                     <i class="bi bi-box-seam me-1"></i>Stock: {{ $product->stock }}
                                 </small>
                             </div>
-                            <div class="d-flex gap-2">
-                                <a href="{{ route('products.show', $product->id) }}" class="btn btn-info btn-sm">
+                            <div class="d-flex gap-1">
+                                <a href="{{ route('products.show', $product->id) }}" class="btn btn-info btn-sm flex-fill">
                                     <i class="bi bi-eye me-1"></i>View
                                 </a>
-                                <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning btn-sm flex-fill">
                                     <i class="bi bi-pencil-square me-1"></i>Edit
                                 </a>
+                                <button type="button" class="btn btn-danger btn-sm flex-fill"
+                                        onclick="confirmDelete('{{ $product->id }}', '{{ $product->name }}')">
+                                    <i class="bi bi-trash me-1"></i>Delete
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -134,12 +138,50 @@
         </div>
     @endif
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the product <strong id="productName"></strong>?</p>
+                    <p class="text-muted">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <form id="deleteForm" method="POST" style="display: inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i>Delete Product
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
         function updateSort(select, param) {
             const url = new URL(window.location);
             url.searchParams.set(param, select.value);
             window.location.href = url.toString();
+        }
+
+        function confirmDelete(productId, productName) {
+            document.getElementById('productName').textContent = productName;
+            document.getElementById('deleteForm').action = `/products/delete/${productId}`;
+
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
         }
     </script>
     @endpush
