@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('color', 7)->default('#007bff'); // Hex color code
+            $table->string('color', 7)->default('#007bff');
             $table->timestamps();
         });
     }
