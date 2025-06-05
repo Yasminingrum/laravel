@@ -3,25 +3,45 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\Category;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = [];
-        for ($i = 1; $i <= 20; $i++) {
-            $products[] = [
-                'id' => $i,
-                'name' => 'Product ' . $i,
-                'description' => 'Description for product ' . $i,
-                'price' => rand(10000, 500000)
-            ];
+        $query = Product::with('category')->active();
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $query->search($request->search);
         }
 
-        return view('products.list', compact('products'));
+        // Category filter
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+
+        // Price range filter
+        if ($request->filled('min_price') || $request->filled('max_price')) {
+            $query->priceRange($request->min_price, $request->max_price);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        if (in_array($sortBy, ['name', 'price', 'created_at'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        $products = $query->paginate(12)->withQueryString();
+        $categories = Category::all();
+
+        return view('products.list', compact('products', 'categories'));
     }
 
     /**
@@ -29,7 +49,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('products.form');
+        $categories = Category::all();
+        return view('products.form', compact('categories'));
     }
 
     /**
@@ -37,6 +58,16 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'stock' => 'required|integer|min:0'
+        ]);
+
+        Product::create($request->all());
+
         return redirect()->route('products')->with('success', 'Product created successfully!');
     }
 
@@ -45,13 +76,7 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        $product = [
-            'id' => $id,
-            'name' => 'Product ' . $id,
-            'description' => 'Description for product ' . $id,
-            'price' => rand(10000, 500000)
-        ];
-
+        $product = Product::with('category')->findOrFail($id);
         return view('products.show', compact('product'));
     }
 
@@ -60,14 +85,9 @@ class ProductController extends Controller
      */
     public function edit(string $id)
     {
-        $product = [
-            'id' => $id,
-            'name' => 'Product ' . $id,
-            'description' => 'Description for product ' . $id,
-            'price' => rand(10000, 500000)
-        ];
-
-        return view('products.form', compact('product'));
+        $product = Product::findOrFail($id);
+        $categories = Category::all();
+        return view('products.form', compact('product', 'categories'));
     }
 
     /**
@@ -75,6 +95,51 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'stock' => 'required|integer|min:0'
+        ]);
+
+        $product = Product::findOrFail($id);
+        $product->update($request->all());
+
         return redirect()->route('products')->with('success', 'Product updated successfully!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        return redirect()->route('products')->with('success', 'Product deleted successfully!');
+    }
+
+    /**
+     * Display the home page.
+     */
+    public function home()
+    {
+        $featuredProducts = Product::with('category')
+            ->active()
+            ->inRandomOrder()
+            ->take(6)
+            ->get();
+
+        $categories = Category::withCount('products')->get();
+
+        $stats = [
+            'total_products' => Product::active()->count(),
+            'total_categories' => Category::count(),
+            'avg_price' => Product::active()->avg('price'),
+            'total_stock' => Product::active()->sum('stock')
+        ];
+
+        return view('home', compact('featuredProducts', 'categories', 'stats'));
     }
 }

@@ -15,6 +15,28 @@
 
     <!-- Custom CSS -->
     @stack('styles')
+    <style>
+        /* Fix pagination styling */
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .page-link {
+            color: #0d6efd;
+            border: 1px solid #dee2e6;
+        }
+
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+    </style>
 </head>
 <body class="{{ $bodyClass }}">
     <!-- Navigation -->
@@ -23,16 +45,22 @@
     @else
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
-                <a class="navbar-brand" href="{{ route('products') }}">
+                <a class="navbar-brand" href="{{ route('home') }}">
                     <i class="bi bi-box-seam me-2"></i>Product Manager
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('products') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
+                               href="{{ route('home') }}">
+                                <i class="bi bi-house me-1"></i>Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('products*') ? 'active' : '' }}"
                                href="{{ route('products') }}">
                                 <i class="bi bi-list-ul me-1"></i>Products
                             </a>
@@ -44,6 +72,14 @@
                             </a>
                         </li>
                     </ul>
+                    <!-- Search form in navbar -->
+                    <form class="d-flex" action="{{ route('products') }}" method="GET">
+                        <input class="form-control me-2" type="search" name="search"
+                               placeholder="Search products..." value="{{ request('search') }}" style="width: 200px;">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </nav>
