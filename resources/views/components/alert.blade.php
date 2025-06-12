@@ -1,33 +1,21 @@
-@props(['type' => 'info', 'dismissible' => true, 'icon' => true])
+@props(['type' => 'info', 'message', 'dismissible' => true])
 
-@php
-    $alertClass = 'alert alert-' . $type;
-    if ($dismissible) {
-        $alertClass .= ' alert-dismissible fade show';
-    }
+<div class="container mt-3">
+    <div class="alert alert-{{ $type }} {{ $dismissible ? 'alert-dismissible fade show' : '' }}" role="alert">
+        @if($type === 'success')
+            <i class="fas fa-check-circle me-2"></i>
+        @elseif($type === 'danger' || $type === 'error')
+            <i class="fas fa-exclamation-triangle me-2"></i>
+        @elseif($type === 'warning')
+            <i class="fas fa-exclamation-circle me-2"></i>
+        @else
+            <i class="fas fa-info-circle me-2"></i>
+        @endif
 
-    $icons = [
-        'success' => 'bi bi-check-circle-fill',
-        'danger' => 'bi bi-exclamation-triangle-fill',
-        'warning' => 'bi bi-exclamation-triangle-fill',
-        'info' => 'bi bi-info-circle-fill',
-        'primary' => 'bi bi-info-circle-fill',
-        'secondary' => 'bi bi-info-circle-fill',
-        'light' => 'bi bi-info-circle-fill',
-        'dark' => 'bi bi-info-circle-fill'
-    ];
+        {{ $message }}
 
-    $iconClass = $icons[$type] ?? $icons['info'];
-@endphp
-
-<div {{ $attributes->merge(['class' => $alertClass, 'role' => 'alert']) }}>
-    @if ($icon)
-        <i class="{{ $iconClass }} me-2"></i>
-    @endif
-
-    {{ $slot }}
-
-    @if ($dismissible)
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    @endif
+        @if($dismissible)
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        @endif
+    </div>
 </div>

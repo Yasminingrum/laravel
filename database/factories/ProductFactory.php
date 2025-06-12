@@ -1,169 +1,75 @@
-<?php
-
 namespace Database\Factories;
 
-use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProductFactory extends Factory
 {
-    protected $model = Product::class;
-
-    public function definition(): array
+    public function definition()
     {
         $productNames = [
-            'Elektronik' => [
-                'Smartphone Samsung Galaxy', 'iPhone Pro Max', 'Laptop ASUS VivoBook',
-                'MacBook Air M2', 'Headphone Sony WH-1000XM5', 'AirPods Pro',
-                'Smart TV LG OLED', 'Monitor Gaming ASUS', 'Kamera Canon EOS',
-                'Tablet iPad Air', 'Speaker Bluetooth JBL', 'Smartwatch Apple Watch'
+            'Electronics' => [
+                'Smartphone Pro Max', 'Wireless Earbuds', 'Gaming Laptop', 'Smart TV 55"',
+                'Tablet Ultra', 'Digital Camera', 'Bluetooth Speaker', 'Smartwatch Series',
+                'Gaming Console', 'Wireless Charger'
             ],
-            'Fashion' => [
-                'Kemeja Batik Premium', 'Dress Casual Wanita', 'Sepatu Sneakers Nike',
-                'Tas Kulit Branded', 'Jaket Denim Vintage', 'Kaos Polos Premium',
-                'Celana Jeans Slim Fit', 'Sandal Kulit Pria', 'Hoodie Unisex'
+            'Clothing' => [
+                'Cotton T-Shirt', 'Denim Jeans', 'Winter Jacket', 'Running Shoes',
+                'Formal Shirt', 'Casual Dress', 'Sports Hoodie', 'Leather Boots',
+                'Summer Shorts', 'Business Suit'
             ],
-            'Rumah Tangga' => [
-                'Rice Cooker Digital', 'Blender Multifungsi', 'Vacuum Cleaner Wireless',
-                'Air Fryer Philips', 'Microwave Sharp', 'Dispenser Galon',
-                'Set Peralatan Masak', 'Lemari Pakaian 3 Pintu', 'Meja Makan Set'
+            'Books' => [
+                'Programming Guide', 'Fiction Novel', 'History Book', 'Cookbook Deluxe',
+                'Self-Help Manual', 'Science Textbook', 'Art Collection', 'Biography',
+                'Poetry Anthology', 'Travel Guide'
             ],
-            'Olahraga' => [
-                'Sepeda Gunung MTB', 'Treadmill Home Fitness', 'Dumbell Set Adjustable',
-                'Matras Yoga Premium', 'Raket Badminton Pro', 'Sepatu Lari Adidas',
-                'Bola Sepak Original', 'Tas Gym Multifungsi'
+            'Home & Garden' => [
+                'Garden Tools Set', 'Kitchen Appliance', 'Decorative Lamp', 'Storage Cabinet',
+                'Plant Fertilizer', 'Cleaning Supplies', 'Furniture Set', 'Wall Art',
+                'Outdoor Grill', 'Home Security System'
+            ],
+            'Sports' => [
+                'Basketball', 'Tennis Racket', 'Yoga Mat', 'Dumbbells Set',
+                'Cycling Helmet', 'Swimming Goggles', 'Running Shoes', 'Golf Club',
+                'Soccer Ball', 'Fitness Tracker'
             ]
         ];
 
-        $brands = [
-            'Samsung', 'Apple', 'Sony', 'Nike', 'Adidas', 'Uniqlo', 'Zara',
-            'Philips', 'LG', 'Canon', 'ASUS', 'HP', 'Dell', 'Xiaomi', 'Oppo'
+        $categories = Category::all();
+        $category = $categories->random();
+
+        $categoryProducts = $productNames[$category->name] ?? [
+            'Premium Product', 'Standard Item', 'Basic Model', 'Deluxe Version',
+            'Professional Grade', 'Economy Option', 'Limited Edition', 'Classic Design'
         ];
 
-        // Ambil kategori random atau buat baru jika belum ada
-        $category = Category::inRandomOrder()->first() ?? Category::factory()->create();
-        $categoryProducts = $productNames[$category->name] ?? ['Product ' . $this->faker->word()];
-
-        $basePrice = $this->faker->randomFloat(2, 50000, 10000000); // 50k - 10jt
+        $baseName = $this->faker->randomElement($categoryProducts);
+        $productName = $baseName . ' ' . $this->faker->randomElement(['Pro', 'Plus', 'Max', 'Elite', 'Standard', 'Basic']);
 
         return [
-            'name' => $this->faker->randomElement($brands) . ' ' . $this->faker->randomElement($categoryProducts),
-            'slug' => $this->faker->unique()->slug(3),
+            'name' => $productName,
             'description' => $this->faker->paragraph(3),
-            'short_description' => $this->faker->sentence(10),
-            'price' => $basePrice,
-            'compare_price' => $this->faker->boolean(60) ?
-                round($basePrice * $this->faker->randomFloat(2, 1.1, 1.8), 2) : null,
-            'cost_price' => round($basePrice * $this->faker->randomFloat(2, 0.4, 0.7), 2),
+            'price' => $this->faker->randomFloat(2, 10000, 5000000), // Rp 10,000 - Rp 5,000,000
             'category_id' => $category->id,
             'stock' => $this->faker->numberBetween(0, 100),
-            'min_stock' => $this->faker->numberBetween(1, 10),
-            'weight' => $this->faker->randomFloat(2, 0.1, 50), // kg
-            'dimensions' => $this->faker->randomElement([
-                '10x10x5', '20x15x8', '30x25x12', '15x10x3', '25x20x10'
-            ]),
-            'sku' => strtoupper($this->faker->unique()->bothify('??##-####')),
-            'barcode' => $this->faker->unique()->numerify('############'),
-            'is_active' => $this->faker->boolean(85), // 85% active
-            'is_featured' => $this->faker->boolean(20), // 20% featured
-            'is_digital' => $this->faker->boolean(10), // 10% digital products
-            'requires_shipping' => function (array $attributes) {
-                return !$attributes['is_digital'];
-            },
-            'meta_title' => function (array $attributes) {
-                return $attributes['name'] . ' - Best Price Online';
-            },
-            'meta_description' => $this->faker->sentence(15),
-            'published_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'image_url' => $this->faker->imageUrl(400, 400, 'products', true, $baseName),
         ];
     }
 
-    // State methods untuk variasi data
-    public function active(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => true,
-        ]);
-    }
-
-    public function featured(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_featured' => true,
-            'is_active' => true,
-        ]);
-    }
-
-    public function outOfStock(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'stock' => 0,
-        ]);
-    }
-
-    public function lowStock(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'stock' => $this->faker->numberBetween(1, 5),
-            'min_stock' => $this->faker->numberBetween(5, 10),
-        ]);
-    }
-
-    public function expensive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'price' => $this->faker->randomFloat(2, 5000000, 50000000),
-        ]);
-    }
-
-    public function cheap(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'price' => $this->faker->randomFloat(2, 10000, 500000),
-        ]);
-    }
-
-    public function digital(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_digital' => true,
-            'requires_shipping' => false,
-            'weight' => 0,
-            'dimensions' => null,
-        ]);
-    }
-
-    public function onSale(): static
+    public function expensive()
     {
         return $this->state(function (array $attributes) {
-            $originalPrice = $attributes['price'] ?? 1000000;
             return [
-                'compare_price' => $originalPrice * 1.3,
-                'price' => $originalPrice,
+                'price' => $this->faker->randomFloat(2, 1000000, 10000000), // Rp 1,000,000 - Rp 10,000,000
             ];
         });
     }
 
-    public function electronics(): static
+    public function outOfStock()
     {
         return $this->state(function (array $attributes) {
-            $category = Category::where('name', 'Elektronik')->first();
             return [
-                'category_id' => $category?->id ?? Category::factory()->electronics(),
-                'weight' => $this->faker->randomFloat(2, 0.5, 10),
-                'requires_shipping' => true,
-            ];
-        });
-    }
-
-    public function fashion(): static
-    {
-        return $this->state(function (array $attributes) {
-            $category = Category::where('name', 'Fashion')->first();
-            return [
-                'category_id' => $category?->id ?? Category::factory()->fashion(),
-                'weight' => $this->faker->randomFloat(2, 0.1, 2),
+                'stock' => 0,
             ];
         });
     }

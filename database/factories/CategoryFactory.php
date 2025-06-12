@@ -1,86 +1,34 @@
 <?php
+// CategoryFactory.php (database/factories/CategoryFactory.php)
 
 namespace Database\Factories;
 
-use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class CategoryFactory extends Factory
 {
-    protected $model = Category::class;
-
-    public function definition(): array
+    public function definition()
     {
         $categories = [
-            ['name' => 'Elektronik', 'color' => '#007bff', 'icon' => 'laptop'],
-            ['name' => 'Fashion', 'color' => '#e83e8c', 'icon' => 'bag'],
-            ['name' => 'Rumah Tangga', 'color' => '#28a745', 'icon' => 'house'],
-            ['name' => 'Olahraga', 'color' => '#fd7e14', 'icon' => 'bicycle'],
-            ['name' => 'Makanan', 'color' => '#ffc107', 'icon' => 'cup-hot'],
-            ['name' => 'Kesehatan', 'color' => '#20c997', 'icon' => 'heart-pulse'],
-            ['name' => 'Buku', 'color' => '#6f42c1', 'icon' => 'book'],
-            ['name' => 'Toys', 'color' => '#fd7e14', 'icon' => 'puzzle'],
-            ['name' => 'Otomotif', 'color' => '#dc3545', 'icon' => 'car-front'],
-            ['name' => 'Kecantikan', 'color' => '#f8d7da', 'icon' => 'flower1']
+            'Electronics' => 'Latest gadgets and electronic devices',
+            'Clothing' => 'Fashion and apparel for all ages',
+            'Books' => 'Educational and entertainment books',
+            'Home & Garden' => 'Home improvement and gardening supplies',
+            'Sports' => 'Sports equipment and accessories',
+            'Beauty' => 'Cosmetics and personal care products',
+            'Automotive' => 'Car parts and automotive accessories',
+            'Toys' => 'Children toys and games',
+            'Food & Beverages' => 'Groceries and beverages',
+            'Health' => 'Health and wellness products'
         ];
 
-        $category = $this->faker->randomElement($categories);
+        $name = $this->faker->randomElement(array_keys($categories));
 
         return [
-            'name' => $category['name'],
-            'description' => $this->faker->sentence(8, true),
-            'color' => $category['color'],
-            'icon' => $category['icon'] ?? 'tag',
-            'is_featured' => $this->faker->boolean(30), // 30% chance featured
-            'sort_order' => $this->faker->numberBetween(1, 100),
+            'name' => $name,
+            'description' => $categories[$name],
+            'slug' => Str::slug($name),
         ];
-    }
-
-    // State methods untuk variasi data
-    public function featured(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_featured' => true,
-        ]);
-    }
-
-    public function electronics(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Elektronik',
-            'color' => '#007bff',
-            'icon' => 'laptop',
-            'description' => 'Produk elektronik dan gadget modern untuk kehidupan digital',
-        ]);
-    }
-
-    public function fashion(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Fashion',
-            'color' => '#e83e8c',
-            'icon' => 'bag',
-            'description' => 'Pakaian dan aksesoris fashion terkini untuk gaya hidup modern',
-        ]);
-    }
-
-    public function household(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Rumah Tangga',
-            'color' => '#28a745',
-            'icon' => 'house',
-            'description' => 'Peralatan dan kebutuhan rumah tangga untuk kenyamanan keluarga',
-        ]);
-    }
-
-    public function sports(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Olahraga',
-            'color' => '#fd7e14',
-            'icon' => 'bicycle',
-            'description' => 'Peralatan dan perlengkapan olahraga untuk hidup sehat',
-        ]);
     }
 }

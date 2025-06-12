@@ -1,21 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Add New Product')
+@section('title', 'Edit Product - ' . $product->name)
 
 @section('content')
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card border-0 shadow">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-warning text-dark">
                     <h4 class="mb-0">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Add New Product
+                        <i class="fas fa-edit me-2"></i>
+                        Edit Product: {{ $product->name }}
                     </h4>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('products.store') }}" method="POST">
+                    <form action="{{ route('products.update', $product->id) }}" method="POST">
                         @csrf
+                        @method('PUT')
 
                         <!-- Product Name -->
                         <div class="mb-3">
@@ -24,7 +25,7 @@
                                    class="form-control @error('name') is-invalid @enderror"
                                    id="name"
                                    name="name"
-                                   value="{{ old('name') }}"
+                                   value="{{ old('name', $product->name) }}"
                                    placeholder="Enter product name"
                                    required>
                             @error('name')
@@ -41,7 +42,8 @@
                                     required>
                                 <option value="">Select a category</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                    <option value="{{ $category->id }}"
+                                            {{ (old('category_id', $product->category_id) == $category->id) ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
@@ -59,7 +61,7 @@
                                       name="description"
                                       rows="4"
                                       placeholder="Enter product description"
-                                      required>{{ old('description') }}</textarea>
+                                      required>{{ old('description', $product->description) }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -76,7 +78,7 @@
                                                class="form-control @error('price') is-invalid @enderror"
                                                id="price"
                                                name="price"
-                                               value="{{ old('price') }}"
+                                               value="{{ old('price', $product->price) }}"
                                                min="0"
                                                step="1000"
                                                placeholder="0"
@@ -85,7 +87,6 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <small class="form-text text-muted">Enter price in Indonesian Rupiah</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -95,7 +96,7 @@
                                            class="form-control @error('stock') is-invalid @enderror"
                                            id="stock"
                                            name="stock"
-                                           value="{{ old('stock', 0) }}"
+                                           value="{{ old('stock', $product->stock) }}"
                                            min="0"
                                            placeholder="0"
                                            required>
@@ -113,20 +114,20 @@
                                    class="form-control @error('image_url') is-invalid @enderror"
                                    id="image_url"
                                    name="image_url"
-                                   value="{{ old('image_url') }}"
+                                   value="{{ old('image_url', $product->image_url) }}"
                                    placeholder="https://example.com/image.jpg">
                             @error('image_url')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">Optional: Provide a URL for the product image</small>
-                        </div>
+                            <div class="form-text">Optional: Provide a URL for the product image</div>
 
-                        <!-- Image Preview Container -->
-                        <div class="mb-3" id="image-preview-container" style="display: none;">
-                            <label class="form-label">Image Preview</label>
-                            <div class="border rounded p-3 text-center">
-                                <img id="image-preview" src="" alt="Product preview" class="img-fluid" style="max-height: 200px;">
-                            </div>
+                            @if($product->image_url)
+                                <div class="mt-2">
+                                    <p class="text-muted small">Current image:</p>
+                                    <img src="{{ $product->image_url }}" class="img-thumbnail"
+                                         style="max-width: 200px; max-height: 200px;" alt="Current image">
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Form Actions -->
@@ -141,19 +142,19 @@
 
                             <div class="d-flex gap-2">
                                 <x-button
-                                    type="reset"
-                                    variant="outline-warning"
-                                    icon="fas fa-undo"
+                                    href="{{ route('products.show', $product->id) }}"
+                                    variant="outline-info"
+                                    icon="fas fa-eye"
                                 >
-                                    Reset Form
+                                    View Product
                                 </x-button>
 
                                 <x-button
                                     type="submit"
-                                    variant="primary"
+                                    variant="warning"
                                     icon="fas fa-save"
                                 >
-                                    Save Product
+                                    Update Product
                                 </x-button>
                             </div>
                         </div>
@@ -161,86 +162,31 @@
                 </div>
             </div>
         </div>
-
-        <!-- Sidebar with Tips -->
-        <div class="col-lg-4 mt-4 mt-lg-0">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-lightbulb text-warning"></i>
-                        Tips for Adding Products
-                    </h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            Use clear, descriptive product names
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            Write detailed descriptions to help customers
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            Set competitive prices for your market
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            Keep stock levels accurate and updated
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success"></i>
-                            High-quality images increase sales
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            @if(isset($insights))
-            <!-- Market Insights -->
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fas fa-chart-line text-info"></i>
-                        Market Insights
-                    </h6>
-                    @if(isset($insights['average_price']))
-                        <p class="small mb-2">
-                            <strong>Average Price:</strong>
-                            Rp {{ number_format($insights['average_price']) }}
-                        </p>
-                    @endif
-                    @if(isset($insights['suggested_stock']))
-                        <p class="small mb-0">
-                            <strong>Suggested Stock:</strong>
-                            {{ round($insights['suggested_stock']) }} items
-                        </p>
-                    @endif
-                </div>
-            </div>
-            @endif
-        </div>
     </div>
 </div>
 @endsection
 
 @section('scripts')
 <script>
-    // Image URL preview functionality
+    // Preview image when URL is changed
     document.getElementById('image_url').addEventListener('input', function() {
         const url = this.value;
-        const preview = document.getElementById('image-preview');
-        const container = document.getElementById('image-preview-container');
+        const existingPreview = document.getElementById('new-image-preview');
+
+        if (existingPreview) {
+            existingPreview.remove();
+        }
 
         if (url && isValidUrl(url)) {
-            preview.src = url;
-            preview.onload = function() {
-                container.style.display = 'block';
-            };
-            preview.onerror = function() {
-                container.style.display = 'none';
-            };
-        } else {
-            container.style.display = 'none';
+            const preview = document.createElement('div');
+            preview.id = 'new-image-preview';
+            preview.className = 'mt-2';
+            preview.innerHTML = `
+                <p class="text-muted small">New image preview:</p>
+                <img src="${url}" class="img-thumbnail" style="max-width: 200px; max-height: 200px;"
+                     onerror="this.style.display='none'" alt="New image preview">
+            `;
+            this.parentNode.appendChild(preview);
         }
     });
 
@@ -254,7 +200,7 @@
         }
     }
 
-    // Auto-format price input
+    // Format price input
     document.getElementById('price').addEventListener('input', function() {
         let value = this.value.replace(/[^\d]/g, '');
         if (value) {
@@ -263,7 +209,7 @@
         }
     });
 
-    // Form validation enhancement
+    // Form validation
     document.querySelector('form').addEventListener('submit', function(e) {
         const requiredFields = ['name', 'category_id', 'description', 'price', 'stock'];
         let isValid = true;
@@ -282,16 +228,6 @@
             e.preventDefault();
             alert('Please fill in all required fields.');
         }
-    });
-
-    // Reset form functionality
-    document.querySelector('button[type="reset"]').addEventListener('click', function() {
-        document.getElementById('image-preview-container').style.display = 'none';
-
-        // Clear validation states
-        document.querySelectorAll('.is-invalid').forEach(field => {
-            field.classList.remove('is-invalid');
-        });
     });
 </script>
 @endsection

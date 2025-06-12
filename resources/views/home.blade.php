@@ -1,188 +1,380 @@
-<x-template title="Product Manager - Home" bodyClass="bg-light">
-    <!-- Hero Section -->
-    <div class="bg-primary text-white py-5 mb-5 rounded">
-        <div class="container text-center">
-            <h1 class="display-4 fw-bold mb-4">
-                <i class="bi bi-shop me-3"></i>TOKO SAYA
-            </h1>
-            <p class="lead mb-4">Manage products with ease and efficiency</p>
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <form action="{{ route('products') }}" method="GET" class="d-flex gap-2">
-                        <input type="text" name="search" class="form-control form-control-lg"
-                               placeholder="Search products..." value="{{ request('search') }}">
-                        <button type="submit" class="btn btn-warning btn-lg px-4">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </form>
+@extends('layouts.app')
+
+@section('title', 'Home - Toko Saya')
+
+@section('content')
+<!-- Hero Section - Compact -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="h2 fw-bold mb-3">Welcome to Toko Saya</h1>
+                <p class="mb-4">Discover amazing products and manage your inventory with ease. Browse through our collection of {{ $stats['total_products'] }} products.</p>
+                <div class="d-flex gap-2">
+                    <x-button
+                        href="{{ route('products.list') }}"
+                        variant="light"
+                        size="sm"
+                        icon="fas fa-shopping-bag"
+                    >
+                        Browse Products
+                    </x-button>
+                    <x-button
+                        href="{{ route('products.create') }}"
+                        variant="outline-light"
+                        size="sm"
+                        icon="fas fa-plus"
+                    >
+                        Add Product
+                    </x-button>
                 </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="fas fa-store display-6 text-white-50"></i>
             </div>
         </div>
     </div>
+</section>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-5">
-        <div class="col-md-3 mb-3">
-            <div class="card text-center h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="text-primary mb-3">
-                        <i class="bi bi-box-seam display-4"></i>
-                    </div>
-                    <h3 class="fw-bold text-primary">{{ number_format($stats['total_products']) }}</h3>
-                    <p class="text-muted mb-0">Total Products</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="text-success mb-3">
-                        <i class="bi bi-tags display-4"></i>
-                    </div>
-                    <h3 class="fw-bold text-success">{{ number_format($stats['total_categories']) }}</h3>
-                    <p class="text-muted mb-0">Categories</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="text-warning mb-3">
-                        <i class="bi bi-currency-dollar display-4"></i>
-                    </div>
-                    <h3 class="fw-bold text-warning">Rp {{ number_format($stats['avg_price'], 0, ',', '.') }}</h3>
-                    <p class="text-muted mb-0">Average Price</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="text-info mb-3">
-                        <i class="bi bi-archive display-4"></i>
-                    </div>
-                    <h3 class="fw-bold text-info">{{ number_format($stats['total_stock']) }}</h3>
-                    <p class="text-muted mb-0">Total Stock</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Categories Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="bi bi-tags me-2"></i>Shop by Categories</h2>
-                <a href="{{ route('products') }}" class="btn btn-outline-primary">
-                    View All Products <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-        @foreach($categories as $category)
-        <div class="col-md-6 col-lg-3 mb-3">
-            <a href="{{ route('products', ['category' => $category->id]) }}" class="text-decoration-none">
-                <div class="card h-100 border-0 shadow-sm category-card">
-                    <div class="card-body text-center">
-                        <div class="mb-3" style="color: {{ $category->color }}">
-                            <i class="bi bi-tag display-5"></i>
+<!-- Statistics Section - Compact -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-lg-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-box"></i>
                         </div>
-                        <h5 class="card-title">{{ $category->name }}</h5>
-                        <p class="card-text text-muted">{{ $category->description }}</p>
-                        <span class="badge" style="background-color: {{ $category->color }}">
-                            {{ $category->products_count }} products
-                        </span>
+                        <div class="ms-3">
+                            <h5 class="mb-0">{{ $stats['total_products'] }}</h5>
+                            <small class="text-muted">Products</small>
+                        </div>
                     </div>
                 </div>
-            </a>
-        </div>
-        @endforeach
-    </div>
-
-    <!-- Featured Products -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="bi bi-star me-2"></i>Featured Products</h2>
-                <a href="{{ route('products') }}" class="btn btn-outline-success">
-                    View All <i class="bi bi-arrow-right ms-1"></i>
-                </a>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="mb-0">{{ $stats['total_categories'] }}</h5>
+                            <small class="text-muted">Categories</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="mb-0">{{ number_format($stats['inventory_value'] / 1000000, 1) }}M</h5>
+                            <small class="text-muted">Value</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="mb-0">{{ $stats['low_stock'] + $stats['out_of_stock'] }}</h5>
+                            <small class="text-muted">Alerts</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        @foreach($featuredProducts as $product)
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm product-card">
-                <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title">
-                            <i class="bi bi-box me-2" style="color: {{ $product->category->color }}"></i>
-                            {{ $product->name }}
-                        </h5>
-                        <span class="badge" style="background-color: {{ $product->category->color }}">
-                            {{ $product->category->name }}
-                        </span>
-                    </div>
-                    <p class="card-text flex-grow-1 text-muted">{{ Str::limit($product->description, 80) }}</p>
-                    <div class="mt-auto">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <p class="text-success fw-bold mb-0 fs-5">
-                                {{ $product->formatted_price }}
-                            </p>
-                            <small class="text-muted">
-                                <i class="bi bi-box-seam me-1"></i>{{ $product->stock }} in stock
-                            </small>
+    </div>
+</section>
+
+<!-- Featured Products - Compact -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold mb-0">Featured Products</h3>
+            <x-button
+                href="{{ route('products.list') }}"
+                variant="outline-primary"
+                size="sm"
+            >
+                View All
+            </x-button>
+        </div>
+        <div class="row g-3">
+            @forelse($featuredProducts->take(3) as $product)
+                <div class="col-lg-4 col-md-6">
+                    <div class="product-card">
+                        @if($product->image_url)
+                            <img src="{{ $product->image_url }}" class="product-card-img" alt="{{ $product->name }}">
+                        @else
+                            <div class="product-card-img bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-image text-muted fa-2x"></i>
+                            </div>
+                        @endif
+                        <div class="product-card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0">{{ Str::limit($product->name, 30) }}</h6>
+                                <span class="category-badge">{{ $product->category->name }}</span>
+                            </div>
+                            <p class="text-muted small mb-2">{{ Str::limit($product->description, 60) }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="price-tag">{{ $product->formatted_price }}</span>
+                                <x-button
+                                    href="{{ route('products.show', $product->id) }}"
+                                    variant="outline-primary"
+                                    size="sm"
+                                >
+                                    View
+                                </x-button>
+                            </div>
                         </div>
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('products.show', $product->id) }}" class="btn btn-primary btn-sm flex-fill">
-                                <i class="bi bi-eye me-1"></i>View Details
+                    </div>
+                </div>
+            @empty
+                <div class="col-12 text-center">
+                    <p class="text-muted">No featured products available.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions & Recent -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Quick Actions -->
+            <div class="col-lg-4">
+                <h4 class="fw-bold mb-3">Quick Actions</h4>
+                <div class="list-group list-group-flush">
+                    <a href="{{ route('products.create') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-plus text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Add Product</h6>
+                            <small class="text-muted">Add new product to inventory</small>
+                        </div>
+                    </a>
+                    <a href="{{ route('products.list') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-list text-success me-3"></i>
+                        <div>
+                            <h6 class="mb-1">View All Products</h6>
+                            <small class="text-muted">Browse complete product list</small>
+                        </div>
+                    </a>
+                    <a href="{{ route('products.list', ['stock' => 'low']) }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle text-warning me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Low Stock Alert</h6>
+                            <small class="text-muted">{{ $stats['low_stock'] }} products need attention</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- New Arrivals -->
+            <div class="col-lg-4">
+                <h4 class="fw-bold mb-3">New Arrivals</h4>
+                <div class="d-flex flex-column gap-2">
+                    @forelse($newArrivals->take(3) as $product)
+                        <div class="mini-product-card">
+                            <div class="d-flex align-items-center">
+                                @if($product->image_url)
+                                    <img src="{{ $product->image_url }}" class="mini-product-img me-3" alt="{{ $product->name }}">
+                                @else
+                                    <div class="mini-product-img bg-light d-flex align-items-center justify-content-center me-3">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                @endif
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ Str::limit($product->name, 25) }}</h6>
+                                    <small class="text-muted">{{ $product->category->name }}</small>
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <span class="price-tag small">{{ $product->formatted_price }}</span>
+                                        <span class="badge bg-success">New</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-muted">No new arrivals.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="col-lg-4">
+                <h4 class="fw-bold mb-3">Categories</h4>
+                <div class="row g-2">
+                    @forelse($categories->take(4) as $category)
+                        <div class="col-6">
+                            <a href="{{ route('products.list', ['category_id' => $category->id]) }}" class="text-decoration-none">
+                                <div class="category-mini-card">
+                                    <i class="fas fa-tag text-primary mb-2"></i>
+                                    <h6 class="mb-1">{{ $category->name }}</h6>
+                                    <small class="text-muted">{{ $category->products_count }} items</small>
+                                </div>
                             </a>
-                            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endforeach
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <h3 class="mb-4">Quick Actions</h3>
-                    <div class="d-flex flex-wrap justify-content-center gap-3">
-                        <a href="{{ route('products.create') }}" class="btn btn-success btn-lg">
-                            <i class="bi bi-plus-circle me-2"></i>Add New Product
-                        </a>
-                        <a href="{{ route('products') }}" class="btn btn-primary btn-lg">
-                            <i class="bi bi-list-ul me-2"></i>Browse Products
-                        </a>
-                        <a href="{{ route('products', ['sort_by' => 'created_at', 'sort_order' => 'desc']) }}" class="btn btn-info btn-lg">
-                            <i class="bi bi-clock-history me-2"></i>Recent Products
-                        </a>
-                    </div>
+                    @empty
+                        <div class="col-12">
+                            <p class="text-muted">No categories available.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
+</section>
+@endsection
 
-    @push('styles')
-    <style>
-        .category-card:hover {
-            transform: translateY(-5px);
-            transition: transform 0.3s ease;
+@section('scripts')
+<script>
+    // Add smooth animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate statistics on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.stat-card, .product-card, .mini-product-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Add hover effects
+        document.querySelectorAll('.stat-card, .product-card, .mini-product-card, .category-mini-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+
+    .product-card-img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .product-card-body {
+        padding: 16px;
+    }
+
+    .mini-product-card {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+
+    .mini-product-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 6px;
+        object-fit: cover;
+    }
+
+    .category-mini-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+
+    .category-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .price-tag {
+        font-weight: 600;
+        color: #2e7d32;
+    }
+
+    .list-group-item {
+        border: none;
+        border-radius: 8px !important;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 40px 0;
         }
 
-        .product-card:hover {
-            transform: translateY(-3px);
-            transition: transform 0.3s ease;
+        .stat-card {
+            padding: 16px;
         }
 
-        .card {
-            transition: all 0.3s ease;
+        .product-card-img {
+            height: 150px;
         }
-    </style>
-    @endpush
-</x-template>
+    }
+</style>
+@endsection
