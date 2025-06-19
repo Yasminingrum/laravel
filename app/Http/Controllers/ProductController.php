@@ -39,8 +39,8 @@ class ProductController extends Controller
 
         Log::info("Products after filtering: " . $filteredProducts->count());
 
-        // Get pagination data using collection - INCREASE FROM 12 to 20
-        $perPage = $request->get('per_page', 20); // Default 20, bisa diubah via parameter
+        // Get pagination data using collection
+        $perPage = $request->get('per_page', 20);
         $paginatedData = $filteredProducts->paginateCollection($perPage, $request->page ?? 1);
 
         Log::info("Paginated products: " . count($paginatedData['data']));
@@ -58,7 +58,7 @@ class ProductController extends Controller
             'filters' => $request->all(),
             'stats' => $stats,
             'total_found' => $filteredProducts->count(),
-            'total_in_db' => $totalInDb, // Tambahkan untuk debugging
+            'total_in_db' => $totalInDb,
             'per_page' => $perPage
         ]);
     }
@@ -153,7 +153,7 @@ class ProductController extends Controller
         $categories = Category::all();
 
         return view('products.list', [
-            'products' => $products->items(), // Get items array for blade compatibility
+            'products' => $products->items(),
             'pagination' => [
                 'data' => $products->items(),
                 'current_page' => $products->currentPage(),
@@ -169,7 +169,6 @@ class ProductController extends Controller
             'total_found' => $totalFound,
             'total_in_db' => Product::count(),
             'per_page' => $perPage,
-            // For Laravel pagination links compatibility
             'paginatedProducts' => $products
         ]);
     }
@@ -464,7 +463,7 @@ class ProductController extends Controller
         // Get category statistics
         $categoryStats = $products->categoryStatistics();
 
-        // Get recent activity (mock data - replace with real activity tracking)
+        // Get recent activity
         $recentActivity = [
             'products_added_today' => $products->filter(fn($p) => $p->created_at->isToday())->count(),
             'products_updated_today' => $products->filter(fn($p) => $p->updated_at->isToday() && !$p->created_at->isToday())->count(),
@@ -603,7 +602,7 @@ class ProductController extends Controller
             'action' => 'required|in:delete,update_category,update_stock,apply_discount',
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id',
-            'value' => 'nullable' // For category_id, stock amount, discount percentage
+            'value' => 'nullable'
         ]);
 
         $products = Product::whereIn('id', $request->product_ids)->get();

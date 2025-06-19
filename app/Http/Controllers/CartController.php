@@ -13,12 +13,12 @@ class CartController extends Controller
     public function index()
     {
         if (Auth::check()) {
-            // Authenticated user - get from database
+            // Authenticated user
             $cartItems = Cart::with('product.category')
                             ->where('user_id', Auth::id())
                             ->get();
         } else {
-            // Guest user - get from session
+            // Guest user
             $cartItems = $this->getSessionCartItems();
         }
 
@@ -149,7 +149,6 @@ class CartController extends Controller
         ]);
 
         if (Auth::check()) {
-            // Database cart
             $cart = Cart::where('user_id', Auth::id())->findOrFail($cartId);
             $product = $cart->product;
 
@@ -183,7 +182,7 @@ class CartController extends Controller
         } else {
             // Session cart
             $cart = Session::get('cart', []);
-            $productId = $cartId; // For session, cartId is actually productId
+            $productId = $cartId;
 
             if (!isset($cart[$productId])) {
                 return back()->with('error', 'Item not found in cart.');
@@ -196,7 +195,7 @@ class CartController extends Controller
             }
 
             $cart[$productId]['quantity'] = $request->quantity;
-            $cart[$productId]['price'] = $product->price; // Update to current price
+            $cart[$productId]['price'] = $product->price;
             Session::put('cart', $cart);
 
             if ($request->ajax()) {
@@ -233,7 +232,7 @@ class CartController extends Controller
         } else {
             // Session cart
             $sessionCart = Session::get('cart', []);
-            $productId = $cartId; // For session, cartId is actually productId
+            $productId = $cartId;
 
             if (!isset($sessionCart[$productId])) {
                 return back()->with('error', 'Item not found in cart.');
@@ -405,7 +404,7 @@ class CartController extends Controller
                     'user_id' => Auth::id(),
                     'product_id' => $productId,
                     'quantity' => $cartData['quantity'],
-                    'price' => $product->price // Use current price
+                    'price' => $product->price
                 ]);
             }
         }

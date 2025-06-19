@@ -50,7 +50,7 @@ class AuthController extends Controller
     }
 
     /**
-     * FIXED: Get proper redirect URL after login
+     * Get proper redirect URL after login
      */
     private function getRedirectUrl($request)
     {
@@ -113,7 +113,7 @@ class AuthController extends Controller
         // Transfer session cart to database for new customer
         $this->transferSessionCartToDatabase();
 
-        // FIXED: Handle checkout redirect for new users too
+        // Handle checkout redirect for new users too
         $redirectTo = $this->getRedirectUrl($request);
 
         return redirect()->to($redirectTo)
@@ -185,7 +185,7 @@ class AuthController extends Controller
                 if ($product->stock >= $newQuantity) {
                     $existingCart->update([
                         'quantity' => $newQuantity,
-                        'price' => $product->price // Update price to current price
+                        'price' => $product->price
                     ]);
                 }
             } else {
