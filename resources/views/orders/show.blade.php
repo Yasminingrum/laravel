@@ -1,3 +1,4 @@
+{{-- resources/views/orders/show.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Order Details')

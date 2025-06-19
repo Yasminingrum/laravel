@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Session;
 class OrderController extends Controller
 {
     /**
-     * Display customer orders
+     * Display customer orders - Updated to use correct view
      */
     public function index()
     {
@@ -559,7 +559,11 @@ class OrderController extends Controller
     }
 
     /**
+<<<<<<< HEAD
      * Process order for demo/testing
+=======
+     * Process order for demo/testing - for quick order creation
+>>>>>>> 87e41657f1e058b7cb9735e64c9c9ede743ef243
      */
     public function processOrder(Request $request)
     {
