@@ -7,243 +7,318 @@
 <div class="container-fluid py-4">
     <!-- Header -->
     <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="display-6 fw-bold mb-1">Manage Orders</h1>
-            <p class="text-muted mb-0">Overview and management of all customer orders</p>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <span class="badge bg-primary fs-6 px-3 py-2">Admin Panel</span>
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 fw-bold mb-0">Order Management</h1>
+                    <p class="text-muted">Manage customer orders and track deliveries</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-filter me-2"></i>Filter Orders
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index') }}">All Orders</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', ['status' => 'pending']) }}">Pending</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', ['status' => 'processing']) }}">Processing</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', ['status' => 'shipped']) }}">Shipped</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', ['status' => 'delivered']) }}">Delivered</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}">Cancelled</a></li>
+                        </ul>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', array_merge(request()->query(), ['export' => 'csv'])) }}">
+                                <i class="fas fa-file-csv me-2"></i>Export as CSV
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.orders.index', array_merge(request()->query(), ['export' => 'excel'])) }}">
+                                <i class="fas fa-file-excel me-2"></i>Export as Excel
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
+    <!-- Advanced Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-search me-2"></i>Advanced Filters
+                        <button class="btn btn-sm btn-outline-secondary float-end" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </h6>
+                </div>
+                <div class="collapse {{ request()->hasAny(['search', 'status', 'date_from', 'date_to', 'payment_method']) ? 'show' : '' }}" id="advancedFilters">
+                    <div class="card-body">
+                        <form method="GET" action="{{ route('admin.orders.index') }}">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Search</label>
+                                    <input type="text" name="search" class="form-control"
+                                           placeholder="Order number, customer name, email..."
+                                           value="{{ request('search') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="">All Status</option>
+                                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Processing</option>
+                                        <option value="shipped" {{ request('status') === 'shipped' ? 'selected' : '' }}>Shipped</option>
+                                        <option value="delivered" {{ request('status') === 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                        <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Payment Method</label>
+                                    <select name="payment_method" class="form-select">
+                                        <option value="">All Methods</option>
+                                        <option value="bank_transfer" {{ request('payment_method') === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                                        <option value="credit_card" {{ request('payment_method') === 'credit_card' ? 'selected' : '' }}>Credit Card</option>
+                                        <option value="e_wallet" {{ request('payment_method') === 'e_wallet' ? 'selected' : '' }}>E-Wallet</option>
+                                        <option value="cod" {{ request('payment_method') === 'cod' ? 'selected' : '' }}>Cash on Delivery</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Date From</label>
+                                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Date To</label>
+                                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    @if(request()->hasAny(['search', 'status', 'date_from', 'date_to', 'payment_method']))
+                                        <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-times me-1"></i>Clear Filters
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Statistics -->
     <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                        <i class="fas fa-shopping-bag text-primary fa-lg"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-bag"></i>
                     </div>
-                    <div>
-                        <h3 class="mb-1 fw-bold">{{ $stats['total_orders'] }}</h3>
-                        <p class="text-muted mb-0 small">Total Orders</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                        <i class="fas fa-clock text-warning fa-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="mb-1 fw-bold">{{ $stats['pending_orders'] }}</h3>
-                        <p class="text-muted mb-0 small">Pending Orders</p>
+                    <div class="stat-data">
+                        <h3>{{ $stats['total_orders'] ?? 0 }}</h3>
+                        <p>Total Orders</p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                        <i class="fas fa-cog text-info fa-lg"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
                     </div>
-                    <div>
-                        <h3 class="mb-1 fw-bold">{{ $stats['processing_orders'] }}</h3>
-                        <p class="text-muted mb-0 small">Processing</p>
+                    <div class="stat-data">
+                        <h3>{{ $stats['pending_orders'] ?? 0 }}</h3>
+                        <p>Pending Orders</p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                        <i class="fas fa-dollar-sign text-success fa-lg"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-cog"></i>
                     </div>
-                    <div>
-                        <h3 class="mb-1 fw-bold">Rp {{ number_format($stats['total_revenue'] / 1000000, 1) }}M</h3>
-                        <p class="text-muted mb-0 small">Total Revenue</p>
+                    <div class="stat-data">
+                        <h3>{{ $stats['processing_orders'] ?? 0 }}</h3>
+                        <p>Processing</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-data">
+                        <h3>{{ number_format(($stats['total_revenue'] ?? 0) / 1000000, 1) }}M</h3>
+                        <p>Total Revenue</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('admin.orders.index') }}" id="filterForm">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="search" class="form-label">Search Orders</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text"
-                                   class="form-control"
-                                   id="search"
-                                   name="search"
-                                   value="{{ request('search') }}"
-                                   placeholder="Order number, customer name...">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="date_from" class="form-label">From Date</label>
-                        <input type="date"
-                               class="form-control"
-                               id="date_from"
-                               name="date_from"
-                               value="{{ request('date_from') }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="date_to" class="form-label">To Date</label>
-                        <input type="date"
-                               class="form-control"
-                               id="date_to"
-                               name="date_to"
-                               value="{{ request('date_to') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-filter me-1"></i>Filter
-                            </button>
-                        </div>
-                    </div>
+    <!-- Filtered Results Info -->
+    @if(request()->hasAny(['search', 'status', 'date_from', 'date_to', 'payment_method']))
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Showing {{ $filteredStats['filtered_count'] ?? 0 }} filtered results
+                    @if(isset($filteredStats['filtered_revenue']))
+                        with total revenue: <strong>Rp {{ number_format($filteredStats['filtered_revenue'], 0, ',', '.') }}</strong>
+                    @endif
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
+    @endif
 
     <!-- Orders Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-light">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h5 class="mb-0">All Orders</h5>
-                </div>
-                <div class="col-auto">
-                    <!-- Status Filter Tabs -->
-                    <div class="btn-group btn-group-sm" role="group">
-                        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['status' => 'all'])) }}"
-                           class="btn {{ !request('status') || request('status') === 'all' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-                            All
-                        </a>
-                        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['status' => 'pending'])) }}"
-                           class="btn {{ request('status') === 'pending' ? 'btn-warning' : 'btn-outline-warning' }}">
-                            Pending
-                        </a>
-                        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['status' => 'processing'])) }}"
-                           class="btn {{ request('status') === 'processing' ? 'btn-info' : 'btn-outline-info' }}">
-                            Processing
-                        </a>
-                        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['status' => 'shipped'])) }}"
-                           class="btn {{ request('status') === 'shipped' ? 'btn-primary' : 'btn-outline-primary' }}">
-                            Shipped
-                        </a>
-                        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['status' => 'delivered'])) }}"
-                           class="btn {{ request('status') === 'delivered' ? 'btn-success' : 'btn-outline-success' }}">
-                            Delivered
-                        </a>
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list me-2"></i>All Orders
+                                @if($orders->total() > 0)
+                                    <span class="badge bg-primary">{{ $orders->total() }}</span>
+                                @endif
+                            </h5>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary" id="selectAllBtn">
+                                    <i class="fas fa-check-square me-1"></i>Select All
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" id="bulkActionsBtn" disabled>
+                                    <i class="fas fa-cogs me-1"></i>Bulk Actions
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            @if($orders->count() > 0)
+
+                @if($orders->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="bg-light">
+                        <thead class="table-light">
                             <tr>
-                                <th class="border-0">Order</th>
-                                <th class="border-0">Customer</th>
-                                <th class="border-0">Items</th>
-                                <th class="border-0">Total</th>
-                                <th class="border-0">Status</th>
-                                <th class="border-0">Date</th>
-                                <th class="border-0">Actions</th>
+                                <th width="30">
+                                    <input type="checkbox" class="form-check-input" id="selectAll">
+                                </th>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Payment</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th width="200">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($orders as $order)
-                                <tr class="order-row" data-order-id="{{ $order->id }}">
+                                <tr>
                                     <td>
-                                        <div>
-                                            <strong>{{ $order->order_number }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ ucfirst($order->payment_method) }}</small>
-                                        </div>
+                                        <input type="checkbox" class="form-check-input order-checkbox" value="{{ $order->id }}">
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary"># {{ $order->order_number }}</strong>
                                     </td>
                                     <td>
                                         <div>
-                                            <strong>{{ $order->user->name }}</strong>
-                                            <br>
+                                            <strong>{{ $order->user->name }}</strong><br>
                                             <small class="text-muted">{{ $order->user->email }}</small>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge bg-light text-dark me-2">{{ $order->items->count() }} items</span>
-                                            <small class="text-muted">{{ $order->items->sum('quantity') }} total qty</small>
-                                        </div>
-                                        <div class="product-images mt-1">
-                                            @foreach($order->items->take(2) as $item)
-                                                @if($item->product_image_url)
-                                                    <img src="{{ $item->product_image_url }}"
-                                                         class="rounded me-1"
-                                                         style="width: 30px; height: 30px; object-fit: cover;"
-                                                         title="{{ $item->product_name }}">
-                                                @endif
-                                            @endforeach
-                                            @if($order->items->count() > 2)
-                                                <span class="badge bg-secondary">+{{ $order->items->count() - 2 }}</span>
-                                            @endif
-                                        </div>
+                                        <small class="text-muted">
+                                            {{ $order->created_at->format('M d, Y') }}<br>
+                                            {{ $order->created_at->format('g:i A') }}
+                                        </small>
                                     </td>
                                     <td>
-                                        <strong class="text-success">{{ $order->formatted_total }}</strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge {{ $order->status_badge_class }}">
-                                            {{ $order->status_label }}
+                                        <span class="badge bg-light text-dark">
+                                            {{ $order->items->count() }} items
                                         </span>
                                     </td>
                                     <td>
-                                        <div>
-                                            {{ $order->created_at->format('M d, Y') }}
-                                            <br>
-                                            <small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
-                                        </div>
+                                        <span class="badge bg-secondary">
+                                            {{ ucwords(str_replace('_', ' ', $order->payment_method)) }}
+                                        </span>
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
+                                        <strong>Rp {{ number_format($order->total, 0, ',', '.') }}</strong>
+                                    </td>
+                                    <td>
+                                        @php
+                                            $statusColors = [
+                                                'pending' => 'warning',
+                                                'processing' => 'info',
+                                                'shipped' => 'primary',
+                                                'delivered' => 'success',
+                                                'cancelled' => 'danger'
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $statusColors[$order->status] ?? 'secondary' }}">
+                                            {{ ucfirst($order->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
                                             <button type="button"
-                                                    class="btn btn-outline-primary view-details-btn"
-                                                    data-order-id="{{ $order->id }}">
+                                                    class="btn btn-outline-secondary view-details-btn"
+                                                    data-order-id="{{ $order->id }}"
+                                                    title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button"
-                                                        class="btn btn-outline-secondary dropdown-toggle"
-                                                        data-bs-toggle="dropdown">
-                                                    Status
+                                            <a href="{{ route('orders.show', $order) }}"
+                                               class="btn btn-outline-primary"
+                                               title="Full View">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-success dropdown-toggle"
+                                                        data-bs-toggle="dropdown"
+                                                        title="Change Status">
+                                                    <i class="fas fa-edit"></i>
                                                 </button>
                                                 <ul class="dropdown-menu">
                                                     @foreach(['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as $status)
                                                         @if($status !== $order->status)
                                                             <li>
-                                                                <form method="POST"
-                                                                      action="{{ route('admin.orders.update-status', $order) }}"
-                                                                      class="d-inline">
+                                                                <form action="{{ route('admin.orders.update-status', $order) }}"
+                                                                      method="POST" class="d-inline"
+                                                                      onsubmit="return confirm('Change order status to {{ $status }}?')">
                                                                     @csrf
                                                                     @method('PATCH')
                                                                     <input type="hidden" name="status" value="{{ $status }}">
-                                                                    <button type="submit"
-                                                                            class="dropdown-item"
-                                                                            onclick="return confirm('Change status to {{ ucfirst($status) }}?')">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-circle text-{{ $statusColors[$status] ?? 'secondary' }} me-2"></i>
                                                                         {{ ucfirst($status) }}
                                                                     </button>
                                                                 </form>
@@ -252,12 +327,24 @@
                                                     @endforeach
                                                 </ul>
                                             </div>
+                                            @if($order->status === 'pending')
+                                                <button type="button" class="btn btn-outline-danger"
+                                                        onclick="if(confirm('Cancel this order?')) { document.getElementById('cancel-form-{{ $order->id }}').submit(); }"
+                                                        title="Cancel Order">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                                <form id="cancel-form-{{ $order->id }}" action="{{ route('admin.orders.update-status', $order) }}" method="POST" style="display: none;">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="status" value="cancelled">
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
                                 <!-- Order Details Row (Hidden by default) -->
                                 <tr id="details-{{ $order->id }}" class="order-details d-none">
-                                    <td colspan="7">
+                                    <td colspan="9">
                                         <div class="bg-light p-4 rounded">
                                             <div class="row">
                                                 <!-- Order Items -->
@@ -280,49 +367,57 @@
                                                                             <div class="d-flex align-items-center">
                                                                                 @if($item->product_image_url)
                                                                                     <img src="{{ $item->product_image_url }}"
-                                                                                         class="rounded me-2"
+                                                                                         alt="{{ $item->product_name }}"
+                                                                                         class="me-2"
                                                                                          style="width: 40px; height: 40px; object-fit: cover;">
                                                                                 @endif
                                                                                 <div>
                                                                                     <strong>{{ $item->product_name }}</strong>
-                                                                                    <br>
-                                                                                    <small class="text-muted">Electronics</small>
+                                                                                    @if($item->product_description)
+                                                                                        <br><small class="text-muted">{{ Str::limit($item->product_description, 50) }}</small>
+                                                                                    @endif
                                                                                 </div>
                                                                             </div>
                                                                         </td>
                                                                         <td>{{ $item->quantity }}</td>
-                                                                        <td>{{ $item->formatted_price }}</td>
-                                                                        <td>{{ $item->formatted_total }}</td>
+                                                                        <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                                                                        <td>Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
                                                                     </tr>
                                                                 @endforeach
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                    <div class="mt-3">
-                                                        <strong>Total: {{ $order->formatted_total }}</strong>
-                                                    </div>
                                                 </div>
-
-                                                <!-- Shipping Info -->
+                                                <!-- Order Info -->
                                                 <div class="col-md-4">
-                                                    <h6 class="fw-bold mb-3">Shipping Information</h6>
-                                                    <div class="mb-3">
-                                                        <strong>{{ $order->shipping_name }}</strong><br>
-                                                        {{ $order->shipping_email }}<br>
-                                                        {{ $order->shipping_phone }}
+                                                    <h6 class="fw-bold mb-3">Order Information</h6>
+                                                    <div class="small">
+                                                        <p><strong>Customer:</strong> {{ $order->user->name }}</p>
+                                                        <p><strong>Email:</strong> {{ $order->user->email }}</p>
+                                                        <p><strong>Phone:</strong> {{ $order->shipping_phone }}</p>
+                                                        <p><strong>Status:</strong>
+                                                            <span class="badge bg-{{ $statusColors[$order->status] ?? 'secondary' }}">
+                                                                {{ ucfirst($order->status) }}
+                                                            </span>
+                                                        </p>
+                                                        <p><strong>Payment:</strong> {{ ucwords(str_replace('_', ' ', $order->payment_method)) }}</p>
+                                                        <p><strong>Order Date:</strong> {{ $order->created_at->format('M d, Y g:i A') }}</p>
+                                                        @if($order->shipped_at)
+                                                            <p><strong>Shipped:</strong> {{ $order->shipped_at->format('M d, Y g:i A') }}</p>
+                                                        @endif
+                                                        @if($order->delivered_at)
+                                                            <p><strong>Delivered:</strong> {{ $order->delivered_at->format('M d, Y g:i A') }}</p>
+                                                        @endif
+                                                        <hr>
+                                                        <p><strong>Subtotal:</strong> Rp {{ number_format($order->subtotal, 0, ',', '.') }}</p>
+                                                        <p><strong>Tax:</strong> Rp {{ number_format($order->tax, 0, ',', '.') }}</p>
+                                                        <p><strong>Shipping:</strong> Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</p>
+                                                        <p><strong>Total:</strong> Rp {{ number_format($order->total, 0, ',', '.') }}</p>
+                                                        @if($order->notes)
+                                                            <hr>
+                                                            <p><strong>Notes:</strong><br>{{ $order->notes }}</p>
+                                                        @endif
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <small class="text-muted">Address:</small><br>
-                                                        {{ $order->shipping_address }}<br>
-                                                        {{ $order->shipping_city }}, {{ $order->shipping_postal_code }}<br>
-                                                        {{ $order->shipping_country }}
-                                                    </div>
-                                                    @if($order->notes)
-                                                        <div class="mb-3">
-                                                            <small class="text-muted">Notes:</small><br>
-                                                            {{ $order->notes }}
-                                                        </div>
-                                                    @endif
                                                 </div>
                                             </div>
 
@@ -330,11 +425,11 @@
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-secondary close-details-btn"
                                                         data-order-id="{{ $order->id }}">
-                                                    Close
+                                                    <i class="fas fa-times me-1"></i>Close
                                                 </button>
                                                 <a href="{{ route('orders.show', $order) }}"
                                                    class="btn btn-sm btn-primary">
-                                                    View Full Details
+                                                    <i class="fas fa-external-link-alt me-1"></i>View Full Details
                                                 </a>
                                             </div>
                                         </div>
@@ -348,126 +443,177 @@
                 <!-- Pagination -->
                 @if($orders->hasPages())
                     <div class="card-footer bg-light">
-                        <div class="d-flex justify-content-center">
-                            {{ $orders->appends(request()->query())->links() }}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    Showing {{ $orders->firstItem() }} to {{ $orders->lastItem() }} of {{ $orders->total() }} results
+                                </small>
+                            </div>
+                            <div>
+                                {{ $orders->appends(request()->query())->links() }}
+                            </div>
                         </div>
                     </div>
                 @endif
-            @else
-                <!-- Empty State -->
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox display-1 text-muted mb-3"></i>
-                    <h4 class="text-muted">No Orders Found</h4>
-                    <p class="text-muted">
-                        @if(request()->hasAny(['status', 'search', 'date_from', 'date_to']))
-                            No orders match your current filters. Try adjusting your search criteria.
-                        @else
-                            No orders have been placed yet.
+                @else
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox display-1 text-muted mb-3"></i>
+                        <h4 class="text-muted">No Orders Found</h4>
+                        <p class="text-muted">
+                            @if(request()->hasAny(['status', 'search', 'date_from', 'date_to', 'payment_method']))
+                                No orders match your current filters. Try adjusting your search criteria.
+                            @else
+                                No orders have been placed yet.
+                            @endif
+                        </p>
+                        @if(request()->hasAny(['status', 'search', 'date_from', 'date_to', 'payment_method']))
+                            <a href="{{ route('admin.orders.index') }}" class="btn btn-primary">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </a>
                         @endif
-                    </p>
-                    @if(request()->hasAny(['status', 'search', 'date_from', 'date_to']))
-                        <a href="{{ route('admin.orders.index') }}" class="btn btn-primary">
-                            <i class="fas fa-times me-2"></i>Clear Filters
-                        </a>
-                    @endif
-                </div>
-            @endif
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+<style>
+.stat-card {
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.stat-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.stat-data h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-data p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.order-details {
+    background-color: #f8f9fa;
+}
+
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // View order details functionality
-    document.querySelectorAll('.view-details-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orderId = this.dataset.orderId;
+    // Toggle order details
+    document.querySelectorAll('.view-details-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
             const detailsRow = document.getElementById('details-' + orderId);
 
             if (detailsRow.classList.contains('d-none')) {
                 detailsRow.classList.remove('d-none');
                 this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-secondary');
+                this.title = 'Hide Details';
             } else {
                 detailsRow.classList.add('d-none');
                 this.innerHTML = '<i class="fas fa-eye"></i>';
+                this.classList.remove('btn-secondary');
+                this.classList.add('btn-outline-secondary');
+                this.title = 'View Details';
             }
         });
     });
 
-    // Close details functionality
-    document.querySelectorAll('.close-details-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orderId = this.dataset.orderId;
+    // Close details
+    document.querySelectorAll('.close-details-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
             const detailsRow = document.getElementById('details-' + orderId);
-            const viewBtn = document.querySelector(`.view-details-btn[data-order-id="${orderId}"]`);
+            const viewBtn = document.querySelector(`[data-order-id="${orderId}"].view-details-btn`);
 
             detailsRow.classList.add('d-none');
             viewBtn.innerHTML = '<i class="fas fa-eye"></i>';
+            viewBtn.classList.remove('btn-secondary');
+            viewBtn.classList.add('btn-outline-secondary');
+            viewBtn.title = 'View Details';
         });
     });
 
-    // Auto-submit filters on change
-    document.getElementById('date_from').addEventListener('change', function() {
-        document.getElementById('filterForm').submit();
+    // Select all functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+    const bulkActionsBtn = document.getElementById('bulkActionsBtn');
+
+    selectAllCheckbox?.addEventListener('change', function() {
+        orderCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkActionsBtn();
     });
 
-    document.getElementById('date_to').addEventListener('change', function() {
-        document.getElementById('filterForm').submit();
+    orderCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const checkedCount = document.querySelectorAll('.order-checkbox:checked').length;
+            selectAllCheckbox.checked = checkedCount === orderCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < orderCheckboxes.length;
+            updateBulkActionsBtn();
+        });
     });
 
-    // Hover effects
-    document.querySelectorAll('.order-row').forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
+    function updateBulkActionsBtn() {
+        const checkedCount = document.querySelectorAll('.order-checkbox:checked').length;
+        bulkActionsBtn.disabled = checkedCount === 0;
+        bulkActionsBtn.textContent = checkedCount > 0 ? `Bulk Actions (${checkedCount})` : 'Bulk Actions';
+    }
 
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
+    // Select All Button
+    document.getElementById('selectAllBtn')?.addEventListener('click', function() {
+        const allChecked = document.querySelectorAll('.order-checkbox:checked').length === orderCheckboxes.length;
+        orderCheckboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
         });
+        selectAllCheckbox.checked = !allChecked;
+        updateBulkActionsBtn();
     });
 });
 </script>
-
-<style>
-.order-row {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.product-images img {
-    border: 2px solid #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.order-details td {
-    border-top: none !important;
-}
-
-.table th {
-    font-weight: 600;
-    color: #495057;
-    font-size: 0.875rem;
-}
-
-.btn-group-sm .btn {
-    font-size: 0.75rem;
-}
-
-@media (max-width: 768px) {
-    .table-responsive {
-        font-size: 0.875rem;
-    }
-
-    .btn-group {
-        flex-direction: column;
-    }
-
-    .product-images img {
-        width: 25px !important;
-        height: 25px !important;
-    }
-}
-</style>
 @endsection

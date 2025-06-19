@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Session;
 class OrderController extends Controller
 {
     /**
-     * Display customer orders
+     * Display customer orders - Updated to use correct view
      */
     public function index()
     {
@@ -23,7 +23,7 @@ class OrderController extends Controller
             return redirect()->route('login')->with('error', 'Please login first.');
         }
 
-        // Manual role check
+        // Manual role check - ensure only customers can access this
         if (Auth::user()->role !== 'customer') {
             abort(403, 'Access denied. Customer access required.');
         }
@@ -55,9 +55,9 @@ class OrderController extends Controller
             'cancelled_orders' => $orderStats->cancelled_orders ?? 0,
             'completed_orders' => $orderStats->delivered_orders ?? 0,
             'total_spent' => $orderStats->total_spent ?? 0,
-            'total_revenue' => $orderStats->total_spent ?? 0,
         ];
 
+        // Use customer-specific view
         return view('orders.index', compact('orders', 'stats'));
     }
 
@@ -71,14 +71,20 @@ class OrderController extends Controller
             return redirect()->route('login')->with('error', 'Please login first.');
         }
 
-        // Ensure user can only view their own orders
-        if ($order->user_id !== Auth::id()) {
-            abort(403);
+        // Ensure user can only view their own orders OR admin can view all
+        if (Auth::user()->role === 'customer' && $order->user_id !== Auth::id()) {
+            abort(403, 'Access denied. You can only view your own orders.');
         }
 
-        $order->load(['items.product.category', 'user']);
-
-        return view('orders.show', compact('order'));
+        if (Auth::user()->role === 'admin') {
+            // Admin viewing order details
+            $order->load(['items.product.category', 'user']);
+            return view('admin.orders.show', compact('order'));
+        } else {
+            // Customer viewing order details
+            $order->load(['items.product.category', 'user']);
+            return view('orders.show', compact('order'));
+        }
     }
 
     /**
@@ -288,11 +294,10 @@ class OrderController extends Controller
     }
 
     /**
-     * Cancel order
+     * Cancel an order
      */
     public function cancel(Order $order)
     {
-        // Manual auth check
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Please login first.');
         }
@@ -302,15 +307,16 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($order->status !== 'pending') {
-            return back()->with('error', 'Only pending orders can be cancelled.');
+        // Check if order can be cancelled
+        if (!in_array($order->status, ['pending', 'processing'])) {
+            return back()->with('error', 'This order cannot be cancelled.');
         }
-
-        $order->load('items');
 
         DB::beginTransaction();
 
         try {
+            // Restore stock for all items
+            $order->load('items');
             foreach ($order->items as $item) {
                 $product = Product::find($item->product_id);
                 if ($product) {
@@ -323,7 +329,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Order cancelled successfully. Stock has been restored.');
+            return back()->with('success', 'Order has been cancelled successfully. Stock has been restored.');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -470,6 +476,7 @@ class OrderController extends Controller
             'filtered_revenue' => $filteredQuery->where('status', '!=', 'cancelled')->sum('total'),
         ];
 
+        // Use admin-specific view
         return view('admin.orders.index', compact('orders', 'stats', 'filteredStats'));
     }
 
@@ -546,7 +553,89 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+
             return back()->with('error', 'Failed to update order status: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Process order for demo/testing - for quick order creation
+     */
+    public function processOrder(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Please login first.');
+        }
+
+        if (Auth::user()->role !== 'customer') {
+            abort(403, 'Access denied. Customer access required.');
+        }
+
+        // This is for demo/testing - use for direct order processing
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'shipping_address' => 'required|string|max:500',
+            'payment_method' => 'required|in:bank_transfer,credit_card,e_wallet,cod',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+
+        if ($product->stock < $request->quantity) {
+            return back()->with('error', 'Insufficient stock available.');
+        }
+
+        $subtotal = $product->price * $request->quantity;
+        $tax = $subtotal * 0.11;
+        $shipping = $subtotal > 500000 ? 0 : 25000;
+        $total = $subtotal + $tax + $shipping;
+
+        DB::beginTransaction();
+
+        try {
+            // Create order
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'shipping_cost' => $shipping,
+                'total' => $total,
+                'payment_method' => $request->payment_method,
+                'shipping_name' => Auth::user()->name,
+                'shipping_email' => Auth::user()->email,
+                'shipping_phone' => Auth::user()->phone ?? '',
+                'shipping_address' => $request->shipping_address,
+                'shipping_city' => 'Jakarta',
+                'shipping_postal_code' => '12345',
+                'shipping_country' => 'Indonesia',
+                'notes' => $request->notes ?? '',
+            ]);
+
+            // Create order item
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'product_description' => $product->description,
+                'product_image_url' => $product->image_url,
+                'quantity' => $request->quantity,
+                'price' => $product->price,
+                'total' => $subtotal,
+            ]);
+
+            // Update product stock
+            $product->decrement('stock', $request->quantity);
+
+            DB::commit();
+
+            return redirect()->route('orders.show', $order)
+                           ->with('success', 'Order placed successfully! Order Number: ' . $order->order_number);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return back()->withInput()
+                        ->with('error', 'Order failed: ' . $e->getMessage());
         }
     }
 }
