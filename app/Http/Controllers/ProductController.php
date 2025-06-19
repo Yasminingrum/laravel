@@ -7,6 +7,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -15,10 +16,16 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        // Debugging: Check total products in database
+        $totalInDb = Product::count();
+        Log::info("Total products in database: " . $totalInDb);
+
         // Get all products with relationships (cache for performance)
         $products = Cache::remember('products_with_categories', 300, function () {
             return Product::with('category')->get();
         });
+
+        Log::info("Products retrieved from cache/database: " . $products->count());
 
         // Apply advanced filtering using collection methods
         $filteredProducts = $products->advancedFilter([
@@ -30,8 +37,13 @@ class ProductController extends Controller
             'sort_by' => $request->sort_by ?? 'latest'
         ]);
 
-        // Get pagination data using collection
-        $paginatedData = $filteredProducts->paginateCollection(12, $request->page ?? 1);
+        Log::info("Products after filtering: " . $filteredProducts->count());
+
+        // Get pagination data using collection - INCREASE FROM 12 to 20
+        $perPage = $request->get('per_page', 20); // Default 20, bisa diubah via parameter
+        $paginatedData = $filteredProducts->paginateCollection($perPage, $request->page ?? 1);
+
+        Log::info("Paginated products: " . count($paginatedData['data']));
 
         // Get categories for filter dropdown
         $categories = Category::all();
@@ -45,7 +57,120 @@ class ProductController extends Controller
             'categories' => $categories,
             'filters' => $request->all(),
             'stats' => $stats,
-            'total_found' => $filteredProducts->count()
+            'total_found' => $filteredProducts->count(),
+            'total_in_db' => $totalInDb, // Tambahkan untuk debugging
+            'per_page' => $perPage
+        ]);
+    }
+
+    /**
+     * Alternative method using direct database queries instead of collection
+     */
+    public function indexAlternative(Request $request)
+    {
+        Log::info("Using alternative index method");
+
+        // Start with base query
+        $query = Product::with('category');
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+            Log::info("Applied search filter: " . $search);
+        }
+
+        // Apply category filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+            Log::info("Applied category filter: " . $request->category_id);
+        }
+
+        // Apply price range filter
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', $request->min_price);
+            Log::info("Applied min price filter: " . $request->min_price);
+        }
+        if ($request->filled('max_price')) {
+            $query->where('price', '<=', $request->max_price);
+            Log::info("Applied max price filter: " . $request->max_price);
+        }
+
+        // Apply stock status filter
+        if ($request->filled('stock_status')) {
+            switch ($request->stock_status) {
+                case 'in_stock':
+                    $query->where('stock', '>', 0);
+                    break;
+                case 'out_of_stock':
+                    $query->where('stock', 0);
+                    break;
+                case 'low_stock':
+                    $query->where('stock', '>', 0)->where('stock', '<', 10);
+                    break;
+            }
+            Log::info("Applied stock filter: " . $request->stock_status);
+        }
+
+        // Apply sorting
+        switch ($request->get('sort_by')) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'stock_asc':
+                $query->orderBy('stock', 'asc');
+                break;
+            case 'stock_desc':
+                $query->orderBy('stock', 'desc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+        }
+
+        // Get total before pagination
+        $totalFound = $query->count();
+        Log::info("Total products found before pagination: " . $totalFound);
+
+        // Get paginated results
+        $perPage = $request->get('per_page', 20);
+        $products = $query->paginate($perPage);
+
+        Log::info("Products on current page: " . $products->count());
+
+        // Get categories for filter
+        $categories = Category::all();
+
+        return view('products.list', [
+            'products' => $products->items(), // Get items array for blade compatibility
+            'pagination' => [
+                'data' => $products->items(),
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+                'has_more' => $products->hasMorePages()
+            ],
+            'categories' => $categories,
+            'filters' => $request->all(),
+            'total_found' => $totalFound,
+            'total_in_db' => Product::count(),
+            'per_page' => $perPage,
+            // For Laravel pagination links compatibility
+            'paginatedProducts' => $products
         ]);
     }
 

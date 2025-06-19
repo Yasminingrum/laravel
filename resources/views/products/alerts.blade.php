@@ -269,6 +269,46 @@
                                             </td>
                                         </tr>
                                     @endforeach
+
+                                    @foreach($alerts['warning']['needs_restock'] as $product)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @if($product->image_url)
+                                                        <img src="{{ $product->image_url }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;" alt="{{ $product->name }}">
+                                                    @else
+                                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-image text-muted"></i>
+                                                        </div>
+                                                    @endif
+                                                    <div>
+                                                        <div class="fw-medium">{{ Str::limit($product->name, 30) }}</div>
+                                                        <small class="text-muted">#{{ $product->id }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ $product->category->name }}</span>
+                                            </td>
+                                            <td>{{ $product->formatted_price }}</td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">{{ $product->stock }} units</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">Needs Restock</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-outline-primary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline-info" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
@@ -326,6 +366,79 @@
                                     </div>
                                 </div>
                             @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Price Alerts -->
+    @if($alerts['warning']['overpriced']->count() > 0)
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tags me-2"></i>Price Alerts
+                            <span class="badge bg-light text-dark ms-2">{{ $alerts['warning']['overpriced']->count() }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Current Price</th>
+                                        <th>Suggested Price</th>
+                                        <th>Issue</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($alerts['warning']['overpriced'] as $product)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @if($product->image_url)
+                                                        <img src="{{ $product->image_url }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;" alt="{{ $product->name }}">
+                                                    @else
+                                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-image text-muted"></i>
+                                                        </div>
+                                                    @endif
+                                                    <div>
+                                                        <div class="fw-medium">{{ Str::limit($product->name, 30) }}</div>
+                                                        <small class="text-muted">#{{ $product->id }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ $product->category->name }}</span>
+                                            </td>
+                                            <td>{{ $product->formatted_price }}</td>
+                                            <td>
+                                                <span class="text-success">{{ $product->formatted_discounted_price }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">Overpriced</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-outline-primary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline-info" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Collections\ProductCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Product extends Model
 {
@@ -19,10 +20,13 @@ class Product extends Model
         'image_url'
     ];
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'stock' => 'integer'
-    ];
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'stock' => 'integer',
+        ];
+    }
 
     /**
      * Create a new Eloquent Collection instance.
@@ -32,10 +36,20 @@ class Product extends Model
         return new ProductCollection($models);
     }
 
-    // Relationship dengan Category
+    // Relationships
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 
     // Custom Attributes
@@ -98,6 +112,24 @@ class Product extends Model
         } else {
             return 'luxury';
         }
+    }
+
+    // CLEAN: Helper methods for cart functionality using Auth facade
+    public function isInCart($userId = null)
+    {
+        $userId = $userId ?? Auth::id(); // Using Auth facade - IDE friendly
+        if (!$userId) return false;
+
+        return $this->carts()->where('user_id', $userId)->exists();
+    }
+
+    public function getCartQuantity($userId = null)
+    {
+        $userId = $userId ?? Auth::id(); // Using Auth facade - IDE friendly
+        if (!$userId) return 0;
+
+        $cart = $this->carts()->where('user_id', $userId)->first();
+        return $cart ? $cart->quantity : 0;
     }
 
     // Scope untuk pencarian

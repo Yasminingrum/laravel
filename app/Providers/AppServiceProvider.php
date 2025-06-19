@@ -24,23 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // ========== PAGINATION CONFIGURATION ==========
-
-        // Use custom pagination views
-        Paginator::defaultView('pagination.custom');
-        Paginator::defaultSimpleView('pagination.simple-custom');
-
         // ========== ELOQUENT CONFIGURATION ==========
 
         // Prevent lazy loading in development
         if ($this->app->environment('local', 'development')) {
             Model::preventLazyLoading();
         }
-
-        // ========== CUSTOM COLLECTION BINDING ==========
-
-        // This is already handled in Product model newCollection method
-        // But we can add global configuration here if needed
 
         // ========== GLOBAL VIEW COMPOSERS ==========
 

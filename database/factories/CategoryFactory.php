@@ -1,5 +1,4 @@
 <?php
-// CategoryFactory.php (database/factories/CategoryFactory.php)
 
 namespace Database\Factories;
 

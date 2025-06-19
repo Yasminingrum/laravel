@@ -99,29 +99,125 @@
                             Back to Products
                         </x-button>
 
-                        <x-button
-                            href="{{ route('products.edit', $product->id) }}"
-                            variant="warning"
-                            icon="fas fa-edit"
-                        >
-                            Edit Product
-                        </x-button>
+                        @auth
+                            @if(auth()->user()->isAdmin())
+                                <x-button
+                                    href="{{ route('products.edit', $product->id) }}"
+                                    variant="warning"
+                                    icon="fas fa-edit"
+                                >
+                                    Edit Product
+                                </x-button>
 
-                        <form method="POST" action="{{ route('products.destroy', $product->id) }}" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button
-                                type="submit"
-                                variant="danger"
-                                icon="fas fa-trash"
-                                onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.')"
-                            >
-                                Delete Product
-                            </x-button>
-                        </form>
+                                <form method="POST" action="{{ route('products.destroy', $product->id) }}" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-button
+                                        type="submit"
+                                        variant="danger"
+                                        icon="fas fa-trash"
+                                        onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.')"
+                                    >
+                                        Delete Product
+                                    </x-button>
+                                </form>
+                            @endif
+                        @endauth
                     </div>
                 </div>
             </div>
+
+            <!-- Add to Cart Section (Customer Only) -->
+            @auth
+                @if(auth()->user()->isCustomer())
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            </h5>
+
+                            @if($product->stock > 0)
+                                <form method="POST" action="{{ route('cart.add') }}" class="add-to-cart-form">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4">
+                                            <label for="quantity" class="form-label">Quantity</label>
+                                            <div class="input-group">
+                                                <button class="btn btn-outline-secondary" type="button" id="decrease-qty">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="number"
+                                                       class="form-control text-center"
+                                                       id="quantity"
+                                                       name="quantity"
+                                                       value="{{ $product->getCartQuantity() ?: 1 }}"
+                                                       min="1"
+                                                       max="{{ $product->stock }}">
+                                                <button class="btn btn-outline-secondary" type="button" id="increase-qty">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                            <small class="text-muted">Max: {{ $product->stock }} available</small>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label">Total Price</label>
+                                            <div class="fw-bold text-primary fs-5" id="total-price">
+                                                {{ $product->formatted_price }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            @if($product->isInCart())
+                                                <button type="submit" class="btn btn-warning btn-lg w-100">
+                                                    <i class="fas fa-sync me-2"></i>Update Cart
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </form>
+
+                                @if($product->isInCart())
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        You have {{ $product->getCartQuantity() }} of this item in your cart.
+                                        <a href="{{ route('cart.index') }}" class="alert-link">View Cart</a>
+                                    </div>
+                                @endif
+                            @else
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    This product is currently out of stock.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            @endauth
+
+            <!-- Guest Login Prompt -->
+            @guest
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Want to purchase this item?</h5>
+                        <p class="card-text">Please login or register to add items to your cart.</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                            <a href="{{ route('register') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endguest
         </div>
     </div>
 
@@ -174,8 +270,93 @@
 </div>
 @endsection
 
+@section('styles')
+<style>
+    .product-image {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .category-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .price-tag {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #2e7d32;
+    }
+
+    .card-hover {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+</style>
+@endsection
+
 @section('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('quantity');
+    const decreaseBtn = document.getElementById('decrease-qty');
+    const increaseBtn = document.getElementById('increase-qty');
+    const totalPriceEl = document.getElementById('total-price');
+    const form = document.querySelector('.add-to-cart-form');
+
+    if (quantityInput && totalPriceEl) {
+        const basePrice = {{ $product->price }};
+
+        function updateTotalPrice() {
+            const quantity = parseInt(quantityInput.value) || 1;
+            const total = basePrice * quantity;
+            totalPriceEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+        }
+
+        function updateQuantity(change) {
+            const current = parseInt(quantityInput.value) || 1;
+            const newValue = current + change;
+            const max = parseInt(quantityInput.getAttribute('max'));
+
+            if (newValue >= 1 && newValue <= max) {
+                quantityInput.value = newValue;
+                updateTotalPrice();
+            }
+        }
+
+        // Event listeners
+        if (decreaseBtn) {
+            decreaseBtn.addEventListener('click', () => updateQuantity(-1));
+        }
+
+        if (increaseBtn) {
+            increaseBtn.addEventListener('click', () => updateQuantity(1));
+        }
+
+        quantityInput.addEventListener('input', updateTotalPrice);
+
+        // Form submission
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            });
+        }
+
+        // Initialize total price
+        updateTotalPrice();
+    }
+
     // Image zoom functionality
     @if($product->image_url)
     document.querySelector('.card-img-top').addEventListener('click', function() {
@@ -212,37 +393,6 @@
             this.style.transform = 'translateY(0)';
         });
     });
+});
 </script>
-
-<style>
-    .product-image {
-        height: 200px;
-        object-fit: cover;
-    }
-
-    .category-badge {
-        background: #e3f2fd;
-        color: #1976d2;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .price-tag {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #2e7d32;
-    }
-
-    .card-hover {
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-    }
-</style>
 @endsection
